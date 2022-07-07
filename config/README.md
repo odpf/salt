@@ -12,6 +12,7 @@ import (
 	"fmt"
 
 	"github.com/odpf/salt/config"
+	"github.com/spf13/cobra"
 )
 
 type Config struct {
@@ -34,6 +35,10 @@ type NewRelicConfig struct {
 
 func main() {
 	var c Config
+	cmd := cobra.Command{}
+	cmd.Flags().Int("db-port", 5432, "set db port")
+	flags := cmd.Flags()
+
 	l := config.NewLoader(
 		// config.WithViper(viper.New()), // default
 		// config.WithName("config"), // default
@@ -41,6 +46,7 @@ func main() {
 		// config.WithEnvKeyReplacer(".", "_"), // default
 		config.WithPath("$HOME/.test"),
 		config.WithEnvPrefix("CONFIG"),
+		config.WithPFlags(flags, "-"),
 	)
 
 	if err := l.Load(&c); err != nil { // pass pointer to the struct into which you want to load config
@@ -77,10 +83,22 @@ export CONFIG_NEW_RELIC_LICENSE=____LICENSE_STRING_OF_40_CHARACTERS_____
 export CONFIG_LOG_LEVEL=debug
 ```
 
-or a mix of both.
+or by passing the flags
 
-**Configs set in environment will override the ones set as default and in yaml file.**
+```sh
+go run main.go --db-port=5433
+```
 
+or a mix of them.
+
+---
+
+**Config source prioritization:**
+- flags
+- environment
+- config file
+- default
+
+Configs set in environment will override the ones set as default and in yaml file. Flags will override environment, config file, and default.
 ## TODO
  - function to print/return config keys in yaml path and env format with defaults as helper
- - add support for flags
